@@ -245,6 +245,7 @@ static const char *expected_rwx_rules_config =
  *           --> CERTIFICATE: Control System Devices
  *       --> HFIR Sample Environment CA
  *           --> CERTIFICATE: Sample Env. IOCs
+ *   ORNL IT Root CA
  *   --> ORNL User Certificate Authority
  *       --> CERTIFICATE: ORNL Users
  *
@@ -275,6 +276,23 @@ static const char chained_auth_config[] = ""
     "UAG(HFIR:ENV:USERS) {g.lynn, h.overman, i.bachman}\n"
     "UAG(HFIR:ENV:DEVICES) {HFIR:ENV:IOC:TEMP01, HFIR:ENV:IOC:MAG02}\n"
 
+    "GROUP(PHYSICS_GROUP) {physics}\n"
+
+    "AUTHORITY(AUTH_ORNL_ROOT, \"ORNL Root CA\") {\n"
+    "	AUTHORITY(\"SNS Intermediate CA\") {\n"
+    "		AUTHORITY(AUTH_SNS_CTRL, \"SNS Control Systems CA\")\n"
+    "		AUTHORITY(AUTH_BEAMLINE, \"SNS Beamline Operations CA\")\n"
+    "   }\n"
+    "	AUTHORITY(\"HFIR Intermediate CA\") {\n"
+    "		AUTHORITY(AUTH_HIFR_CTRL, \"HFIR Control Systems CA\")\n"
+    "		AUTHORITY(AUTH_HIFR_SAMPLE, \"HFIR Sample Environment CA\")\n"
+    "   }\n"
+    "}\n"
+
+    "AUTHORITY(AUTH_ORNL_IT_ROOT, \"ORNL IT Root CA\") {\n"
+    "	AUTHORITY(AUTH_ORNL_USERS, \"ORNL User Certificate Authority\")\n"
+    "}\n"
+
     "ASG(DEFAULT) {\n"
     "	RULE(0, NONE)\n"
     "}\n"
@@ -283,7 +301,7 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(ORNL:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -292,7 +310,7 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(SNS:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -301,32 +319,25 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(SNS:CTRL:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
+    "}\n"
+
+    "SEC(SNS:SECURITY) {\n"
+    "	METHOD(\"x509\")\n"
+    "	AUTHORITY(AUTH_ORNL_USERS)\n"
+    "	PROTOCOL(\"TLS\")\n"
     "}\n"
 
     "ASG(SNS:CONTROLS) {\n"
     "	RULE(0, READ) {\n"
     "		UAG(SNS:CTRL:USERS)\n"
-    "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
-    "		PROTOCOL(\"TLS\")\n"
+    "		SEC(SNS:SECURITY)\n"
     "	}\n"
     "	RULE(1, WRITE, TRAPWRITE) {\n"
     "		UAG(SNS:CTRL:OPS, SNS:CTRL:DEVICES)\n"
-    "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"SNS Control Systems CA\",\"ORNL User Certificate Authority\")\n"
-    "		PROTOCOL(\"TLS\")\n"
-    "	}\n"
-    "}\n"
-
-    "ASG(SNS:BEAM:ADMIN) {\n"
-    "	RULE(0, WRITE, TRAPWRITE) {\n"
-    "		UAG(SNS:BEAM:ADMINS)\n"
-    "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
-    "		PROTOCOL(\"TLS\")\n"
+    "		SEC(SNS:SECURITY)\n"
     "	}\n"
     "}\n"
 
@@ -334,13 +345,13 @@ static const char chained_auth_config[] = ""
     "	RULE(0, READ) {\n"
     "		UAG(SNS:BEAM:USERS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_BEAMLINE)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "	RULE(1, WRITE, TRAPWRITE) {\n"
     "		UAG(SNS:BEAM:OPS, SNS:BEAM:DEVICES)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"SNS Beamline Operations CA\",\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_ROOT)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -349,7 +360,7 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(HFIR:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -358,7 +369,7 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(HFIR:CTRL:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -367,13 +378,13 @@ static const char chained_auth_config[] = ""
     "	RULE(0, READ) {\n"
     "		UAG(HFIR:CTRL:USERS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "	RULE(1, WRITE, TRAPWRITE) {\n"
     "		UAG(HFIR:CTRL:OPS, HFIR:CTRL:DEVICES)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"HFIR Control Systems CA\",\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_HIFR_CTRL,AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -382,7 +393,7 @@ static const char chained_auth_config[] = ""
     "	RULE(0, WRITE, TRAPWRITE) {\n"
     "		UAG(HFIR:ENV:ADMINS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n"
@@ -391,13 +402,13 @@ static const char chained_auth_config[] = ""
     "	RULE(0, READ) {\n"
     "		UAG(HFIR:ENV:USERS)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "	RULE(1, WRITE, TRAPWRITE) {\n"
     "		UAG(HFIR:ENV:OPS, HFIR:ENV:DEVICES)\n"
     "		METHOD(\"x509\")\n"
-    "		AUTHORITY(\"HFIR Sample Environment CA\",\"ORNL User Certificate Authority\")\n"
+    "		AUTHORITY(AUTH_HIFR_SAMPLE,AUTH_ORNL_USERS)\n"
     "		PROTOCOL(\"TLS\")\n"
     "	}\n"
     "}\n";
@@ -1336,6 +1347,7 @@ static void testMethodAndAuth(void)
  *           --> CERTIFICATE: Control System Devices
  *       --> HFIR Sample Environment CA
  *           --> CERTIFICATE: Sample Env. IOCs
+ *   ORNL IT Root CA
  *   --> ORNL User Certificate Authority
  *       --> CERTIFICATE: ORNL Users
  */
@@ -1354,7 +1366,7 @@ static void testCertificateChains(void) {
     setUser("s.streiffer");
     setAuthority(
         "ORNL User Certificate Authority\n"
-        "ORNL Root CA"
+        "ORNL IT Root CA"
         );
     testAccess("ADMIN", 3);
 
@@ -1424,16 +1436,16 @@ static void testCertificateChains(void) {
         "SNS Intermediate CA\n"
         "ORNL Root CA"
         );
-    testAccess("SNS:BEAMLINE", 0); // Incomplete CA chain
+    testAccess("SNS:BEAMLINE", 3); // Incomplete CA chain is ok
     setAuthority( "" );
     testAccess("SNS:BEAMLINE", 0); // No CA chain
     setAuthority(
         "Sub CA\n"
-        "SNS Beamline Operations CA\n"
+        "NOT SNS Beamline Operations CA\n"
         "SNS Intermediate CA\n"
         "ORNL Root CA"
         );
-    testAccess("SNS:BEAMLINE", 3); // Extra Certificate Authority in Chain is ok
+    testAccess("SNS:BEAMLINE", 3); // Unknown Leaf Certificate is ok
     setAuthority(
         "SNS Beamline Operations CA\n"
         "SNS Intermediate CA\n"
@@ -1451,7 +1463,7 @@ static void testCertificateChains(void) {
     setUser("s.streiffer");
     setAuthority(
         "ORNL User Certificate Authority\n"
-        "ORNL Root CA"
+        "ORNL IT Root CA"
         );
     testAccess("HFIR:ADMIN", 3);
 
@@ -1516,7 +1528,7 @@ static void testCertificateChains(void) {
         "HFIR Intermediate CA\n"
         "ORNL Root CA"
         );
-    testAccess("HFIR:ENVIRONMENT", 0); // Incomplete CA chain
+    testAccess("HFIR:ENVIRONMENT", 3); // Incomplete CA chain is ok
     setAuthority( "" );
     testAccess("HFIR:ENVIRONMENT", 0); // No CA chain
     setAuthority(
